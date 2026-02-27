@@ -85,4 +85,18 @@ class HtmlGeneratorTest {
         String html2 = generator.generate("q", two);
         assertTrue(html2.contains("Top 2 results<"));
     }
+
+    @Test
+    void generateHandlesUrlsWithQueryParameters() {
+        List<SearchResult> results = Collections.singletonList(
+                new SearchResult("Query Param Test", "https://example.com?a=1&b=2", "Has query params")
+        );
+
+        String html = generator.generate("query", results);
+
+        assertTrue(
+                html.contains("href=\"https://example.com?a=1&amp;b=2\""),
+                "Href should contain URL with query parameters and '&' escaped as '&amp;'"
+        );
+    }
 }

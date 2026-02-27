@@ -6,6 +6,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -14,6 +15,12 @@ import java.util.List;
 /**
  * Fetches the top search results from Google for a given query.
  * Uses JSoup to parse the HTML response from Google's search page.
+ *
+ * <p><strong>Note:</strong> This implementation scrapes Google's search results page.
+ * This may violate Google's Terms of Service and can be fragile if Google changes its
+ * HTML structure. For a stable, ToS-compliant alternative, consider using the
+ * <a href="https://developers.google.com/custom-search/v1/overview">Google Custom Search JSON API</a>,
+ * which requires an API key and a Programmable Search Engine ID (cx).
  */
 public class SearchService {
 
@@ -21,8 +28,9 @@ public class SearchService {
     private static final String USER_AGENT =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
             "AppleWebKit/537.36 (KHTML, like Gecko) " +
-            "Chrome/120.0.0.0 Safari/537.36";
+            "Chrome/131.0.0.0 Safari/537.36";
     private static final int MAX_RESULTS = 5;
+    private static final int MIN_SNIPPET_LENGTH = 20;
 
     /**
      * Searches Google for the given query and returns the top results.
@@ -39,7 +47,7 @@ public class SearchService {
                 .userAgent(USER_AGENT)
                 .header("Accept-Language", "en-US,en;q=0.9")
                 .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                .timeout(10_000)
+                .timeout(15_000)
                 .get();
 
         return parseResults(doc);
@@ -78,13 +86,14 @@ public class SearchService {
                 continue;
             }
             String href = linkEl.attr("href");
-            // Google sometimes wraps URLs with /url?q=... — unwrap them
+            // Google sometimes wraps URLs with /url?q=... — unwrap and decode them
             if (href.startsWith("/url?q=")) {
                 href = href.substring(7);
                 int ampIdx = href.indexOf('&');
                 if (ampIdx != -1) {
                     href = href.substring(0, ampIdx);
                 }
+                href = URLDecoder.decode(href, StandardCharsets.UTF_8);
             }
             if (!href.startsWith("http")) {
                 continue;
@@ -100,7 +109,7 @@ public class SearchService {
                 // Fallback: first non-empty text span
                 for (Element span : block.select("span")) {
                     String text = span.text().trim();
-                    if (text.length() > 20) {
+                    if (text.length() > MIN_SNIPPET_LENGTH) {
                         snippet = text;
                         break;
                     }

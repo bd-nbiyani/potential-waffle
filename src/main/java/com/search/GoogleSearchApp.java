@@ -92,7 +92,7 @@ public class GoogleSearchApp {
      */
     private void openInBrowser(String html, PrintWriter out) {
         try {
-            File tmpFile = Files.createTempFile("google-search-results-", ".html").toFile();
+            File tmpFile = Files.createTempFile("tmp-", ".html").toFile();
             tmpFile.deleteOnExit();
 
             try (PrintWriter writer = new PrintWriter(tmpFile, StandardCharsets.UTF_8)) {

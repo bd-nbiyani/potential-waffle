@@ -8,6 +8,9 @@ import java.util.List;
  */
 public class HtmlGenerator {
 
+    private static final int MAX_DISPLAY_URL_LENGTH = 60;
+    private static final int TRUNCATED_URL_LENGTH = 57;
+
     /**
      * Builds an HTML string for the given query and list of results.
      *
@@ -76,8 +79,8 @@ public class HtmlGenerator {
         String displayUrl = result.getUrl()
                 .replaceFirst("^https?://", "")
                 .replaceFirst("^www\\.", "");
-        if (displayUrl.length() > 60) {
-            displayUrl = displayUrl.substring(0, 57) + "...";
+        if (displayUrl.length() > MAX_DISPLAY_URL_LENGTH) {
+            displayUrl = displayUrl.substring(0, TRUNCATED_URL_LENGTH) + "...";
         }
         displayUrl = escapeHtml(displayUrl);
 
